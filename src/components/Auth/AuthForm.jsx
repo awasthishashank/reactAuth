@@ -1,79 +1,92 @@
-import { useState, useRef } from 'react';
+import { useState, useRef } from "react";
 
-import classes from './AuthForm.module.css';
+import classes from "./AuthForm.module.css";
 
 const AuthForm = () => {
   const emailInputRef = useRef();
   const passwordInputRef = useRef();
   const [isLogin, setIsLogin] = useState(true);
-  const [isLoading , setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const switchAuthModeHandler = () => {
     setIsLogin((prevState) => !prevState);
   };
-  const submitHandler =(event)=>{
-    event.preventDefault()
-    const enteredEmail=emailInputRef.current.value;
+  const submitHandler = (event) => {
+    event.preventDefault();
+    const enteredEmail = emailInputRef.current.value;
     const enteredPassword = passwordInputRef.current.value;
-    setIsLoading(true)
-    if (isLogin){
-
-    }else{
-        fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyCAXPWS7glElI2GtGTTymPr5CokwDF8V3I',{
-            method:"POST",
-            body:JSON.stringify({
-                email:enteredEmail,
-                password:enteredPassword,
-                returnSecureToken:true
-            }),
-            headers:{
-                'Content-Type': 'application/json'
-            }
-        }).then(res =>{
-            setIsLoading(false)
-            if(res.ok){
-
-            }else{
-                return res.json().then(data =>{
-                    let errorMessage = 'Authentication Failed'
-                    if(data && data.error && data.error.message){
-                    const errorMessage = data.error.message
-                    console.log(data)
-                }
-                alert(errorMessage);
-                });
-            }
-        })
-
+    setIsLoading(true);
+    let url;
+    if (isLogin) {
+      url =
+        "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyCAXPWS7glElI2GtGTTymPr5CokwDF8V3I";
+    } else {
+      url =
+        "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyCAXPWS7glElI2GtGTTymPr5CokwDF8V3I";
     }
-  }
+    fetch(url, {
+      method: "POST",
+      body: JSON.stringify({
+        email: enteredEmail,
+        password: enteredPassword,
+        returnSecureToken: true,
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((res) => {
+        setIsLoading(false);
+        if (res.ok) {
+          return res.json();
+        } else {
+          return res.json().then((data) => {
+            let errorMessage = "Authentication Failed";
+            if (data && data.error && data.error.message) {
+              const errorMessage = data.error.message;
+              console.log(data);
+            }
+
+            throw new Error(errorMessage);
+          });
+        }
+      })
+      .then((data) => {
+        console.log(data)
+      })
+      .catch((err) => {
+        alert(err.Message);
+      });
+  };
 
   return (
     <section className={classes.auth}>
-      <h1>{isLogin ? 'Login' : 'Sign Up'}</h1>
-      <form onSubmit={submitHandler} >
+      <h1>{isLogin ? "Login" : "Sign Up"}</h1>
+      <form onSubmit={submitHandler}>
         <div className={classes.control}>
-          <label htmlFor='email'>Your Email</label>
-          <input type='email' id='email' required ref={emailInputRef} />
+          <label htmlFor="email">Your Email</label>
+          <input type="email" id="email" required ref={emailInputRef} />
         </div>
         <div className={classes.control}>
-          <label htmlFor='password'>Your Password</label>
+          <label htmlFor="password">Your Password</label>
           <input
-            type='password'
-            id='password'
+            type="password"
+            id="password"
             required
             ref={passwordInputRef}
           />
         </div>
         <div className={classes.actions}>
-            {!isLoading && <button>{isLogin?'login':'Create Account' }</button>}
-            {isLoading && <p>Loading...</p>}
+          {!isLoading && (
+            <button>{isLogin ? "login" : "Create Account"}</button>
+          )}
+          {isLoading && <p>Loading...</p>}
           <button
-            type='button'
+            type="button"
             className={classes.toggle}
             onClick={switchAuthModeHandler}
           >
-            {isLogin ? 'Create new account' : 'Login with existing account'}
+            {isLogin ? "Create new account" : "Login with existing account"}
           </button>
         </div>
       </form>
